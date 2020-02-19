@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <!-- BOOTSTRAP -->
+    <!-- Importing Bootstrap which helps us write styling code much easier and clear and helps organizing the html content in a grid -->
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+      integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T"
+      crossorigin="anonymous"
+    />
+    <!-- FONTAWESOME -->
+    <!-- Linking Fontawesome in order to use icons which we can integrate into the html content and customize it in size -->
+    <script src="https://kit.fontawesome.com/2b498beeb7.js"></script>
+    <!-- CSS -->
+    <!-- We link our own CSS style sheet in order to manipulate the appearance of our html code -->
+    <link rel="stylesheet" href="/static/css/style_voting.css" />
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script
+      async
+      src="https://www.googletagmanager.com/gtag/js?id=UA-152154443-1"
+    ></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag("js", new Date());
+
+      gtag("config", "UA-152154443-1");
+    </script>
+    <!-- Page Title -->
+    <title>NOVA SBE - Online Voting</title>
+  </head>
+
+  <body onload="confirmFunction()">
+    <div class="header-wrapper text-center">
+      <div class="header-overlap">
+        <div class="row align-items-center mr-0">
+          <div class="col-4 col-sm-3 col-lg-2">
+            <div class="nova-logo-header mt-3">
+              <img src="/static/img/nova-logo-2.png" alt="nova-logo-2">
+            </div>
+          </div>
+          <div class="col-8 col-sm-9 col-lg-10 pr-0">
+            <div class="nova-logo-header">
+              <hr class="nova-logo">
+            </div>
+          </div>
+        </div>
+        <div class="container header-container">
+          <div class="header text-center">
+            <h1 class="mb-3">HI VOTER!</h1>
+            <hr>
+            <h4>Welcome to NOVA SBE’s new online voting system.</h4>
+          </div> 
+        </div>
+      </div>
+    </div>
+
+    <div class="election-info-wrapper text-center mb-5">
+      <div class="help text-right" style="margin-right:8px">
+        <a href="/static/help_u.pdf" class="btn btn-primary"><i class="fas fa-question-circle"></i><span class="d-none d-sm-inline-block ml-2" style="font-size: 16px">Help</span></a>
+      </div>
+      <div class="container mt-3">
+        <div class="election-info text-center">
+          <h1 class="mb-3 d-none d-sm-block">{{ voter_election['name'] }}</h1>
+          <h2 class="mb-3 d-block d-sm-none" style="font-weight: 700">{{ voter_election['name'] }}</h2>
+          <h5>- {{ voter_election['program'] }} -</h4>
+          <hr />
+          <h6>Please follow the steps to ensure a smooth voting experience.</h6>
+        </div>
+      </div>
+    </div>
+
+    <div class="select-candidate-wrapper pt-5 text-center">
+      <div class="flag-two mb-5" id="flag-two"></div>
+      <div class="container">
+        <div class="select-candidate text-center">
+            <svg height="100" width="100">
+                <circle cx="50" cy="50" r="30" stroke="" stroke-width="3" fill="black" />
+                <text x="50%" y="50%" text-anchor="middle" stroke="white" stroke-width="3px" dy=".35em" font-size="40">1</text>
+        </svg>
+          <h2>SELECT YOUR CANDIDATE</h2>
+          <hr>
+          <h6>
+              Instead of an actual election, we would like you to guess to whom of us the following fun fact applies: <strong>"He or she lost a substantial amount of money while investing in Bitcoin"</strong>.
+          </h6>
+          <div class="container">
+            <div class="row justify-content-center">
+              <div class="col-12 col-sm-10 col-md-8 col-lg-6">
+                <div class="candidate-input text-left">
+                  <form action="{{ url_for('process') }}" method="POST" id="vote_form" name="vote_form">
+                    {% for candidate in election_candidates %}
+                      <div class="row align-items-center">
+                        <div class="col-1">
+                          <input type="radio" name="candidate" id="candidate-{{ candidate['number'] }}" value="{{ candidate['name'] }}" required/>
+                        </div>
+                        <div class="col-10 col-sm-11">
+                          <label class="ml-3" for="candidate-{{ candidate['number'] }}">{{ candidate['name']| safe }}</label>
+                        </div>
+                      </div>
+                      {% if candidate['number'] != election_candidates|length %}
+                        <hr>
+                      {% endif %}
+                    {% endfor %}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div> 
+      </div>
+      <div class="flag pt-5 mt-5" id="flag"></div>
+    </div>
+
+    <div class="submit-vote-wrapper mt-5 text-center">
+      <div class="container">
+        <div class="submit-vote text-center">
+          <svg height="100" width="100">
+            <circle cx="50" cy="50" r="30" stroke="" stroke-width="3" fill="white" />
+            <text x="50%" y="50%" text-anchor="middle" stroke="#51c5cf" stroke-width="3px" dy=".35em" font-size="40">2</text>
+          </svg>
+          <h2>SUBMIT YOUR VOTE</h2>
+          <hr>
+          <h6>
+              Submit your vote by clicking on the Submit button below. 
+          </h6>
+          <button type="button" class="btn btn-lg mt-3" data-toggle="modal" data-target=".verify_modal">
+            Submit Vote
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Modal -->
+    <div class="modal fade verify_modal">
+      <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+          <div class="modal-header text-center justify-content-center">
+            <div class="modal-title text-center">
+              <svg height="100" width="100">
+                <circle cx="50" cy="50" r="30" stroke="" stroke-width="3" fill="white" />
+                <text x="50%" y="50%" text-anchor="middle" stroke="#51c5cf" stroke-width="3px" dy=".35em" font-size="40">3</text>
+              </svg>
+              <h2 class="d-none d-sm-block">CONFIRM YOUR VOTE</h2>
+              <h3 class="d-block d-sm-none">CONFIRM YOUR VOTE</h3>
+            </div>
+            <div class="modal-close">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          </div>
+          <div class="modal-body text-center">
+            <div class="row align-items-center">
+              <div class="col-sm-2 mb-sm-0 d-none d-sm-block"><i class="fas fa-exclamation-triangle fa-3x"></i></div>
+              <div class="col-12 col-sm-10">
+                <h6 class="d-none d-sm-block" style="text-align: justify">Confirm your vote by clicking on the button below. This might take a couple of seconds, so please be patient and <strong>do not refresh</strong> the page after clicking the confirm button. You will be directed to the <strong>verification page</strong> on which you can make sure your vote was casted correctly. In case you see the Google SignIn Page next, your session expired and you will have to redo the process.</h6>
+                <h5 class="d-block d-sm-none" style="font-size: 1.15rem"><i class="fas fa-exclamation-triangle mr-2"></i><strong>Important Information</strong></h5>
+                <hr class="d-block d-sm-none">
+                <h6 class="d-block d-sm-none" style="text-align: justify">Confirm your vote by clicking on the button below. This might take a couple of seconds, so please be patient and <strong>do not refresh</strong> the page after clicking the confirm button. You will be directed to the <strong>verification page</strong> on which you can make sure your vote was casted correctly. In case you see the Google SignIn Page next, your session expired and you will have to redo the process.</h6>
+              </div>
+            </div>
+            <h6 id="confirmation_info"></h6>
+            <h6 id="confirmation" style="font-weight: 700"></h6>
+            
+            <div class="confirm-vote" id="castVoteButton" style="display:block">
+              <input class="btn btn-lg mt-3" type="submit" value="Confirm Vote" onclick="castFunction()">
+            </div>
+            <div class="text-center justify-content-center inline-block" id="castVoteSpinner" style="display:none; width: 100%">
+              <div class="btn btn-lg mt-3 loading-button" >
+                <div class="spinner-border text-light text-center inline-block" role="status" style="position: relative">
+                  <span class="sr-only">Loading...</span>
+                </div> 
+                <span class="ml-2 inline-block" style="font-size: 1.25rem; position: relative">Casting the Vote</s>
+              </div>
+            </div> 
+          </div>
+        </div>
+      </div>
+    </div>
+
+    </form>
+
+    <!-- BOOTSTRAP SCRIPTS -->
+    <!-- More necessary scripts in order to use bootstrap on the website -->
+    <script
+      src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+      integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+      integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+      integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+      crossorigin="anonymous"
+    ></script>
+    <!-- We are linking the main JavaScript file here if we want to include some javascript functions -->
+    <script type="text/javascript" src="{{ url_for('static', filename='main.js') }}"></script>
+  </body>
+</html>

@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <!-- BOOTSTRAP -->
+    <!-- Importing Bootstrap which helps us write styling code much easier and clear and helps organizing the html content in a grid -->
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+      integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T"
+      crossorigin="anonymous"
+    />
+    <!-- FONTAWESOME -->
+    <!-- Linking Fontawesome in order to use icons which we can integrate into the html content and customize it in size -->
+    <script src="https://kit.fontawesome.com/2b498beeb7.js"></script>
+    <!-- CSS -->
+    <!-- We link our own CSS style sheet in order to manipulate the appearance of our html code -->
+    <link rel="stylesheet" href="/static/css/style_verify.css" />
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script
+      async
+      src="https://www.googletagmanager.com/gtag/js?id=UA-152154443-1"
+    ></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag("js", new Date());
+
+      gtag("config", "UA-152154443-1");
+    </script>
+    <!-- Page Title -->
+    <title>NOVA SBE - Online Voting Verification</title>
+  </head>
+
+  <body>
+    <!-- Here is where the seperation between Version A and Version B begins -->
+
+    <!-- THIS IS VERSION A -->
+    {% if version == 'A' %}
+
+    <div class="two-factor text-center">
+      <div class="help text-right" style="margin-right:8px">
+        <a href="/static/help_a.pdf" class="btn btn-primary"><i class="fas fa-question-circle"></i><span class="d-none d-sm-inline-block ml-2" style="font-size: 16px">Help</span></a>
+      </div>
+      <div class="container">
+        <div class="number">
+          <svg height="100" width="100">
+            <circle cx="50" cy="50" r="30" stroke="" stroke-width="3" fill="white" />
+            <text x="50%" y="50%" text-anchor="middle" stroke="#51c5cf" stroke-width="3px" dy=".35em" font-size="40">
+              1
+            </text>
+          </svg>
+        </div>
+        <h2>TWO FACTOR AUTHENTICATION</h2>
+        <hr />
+        <h6>
+            Two-factor authentication adds an additional layer of security to the authentication process by making it harder for attackers to gain access to a person's online accounts. We implemented it by generating an individual password for you after you casted your vote. To provide the highest possible privacy for your vote, your password has not been stored in our database and is not accessible anymore unless you have saved it on one of your personal devices. In that case, you are able to verify your vote by passing it in below.
+        </h6>
+      </div>
+      <div class="flag pt-5 mt-5" id="flag"></div>
+    </div>
+
+    <div class="verify-vote text-center mt-5">
+      <div class="container">
+        <div class="number">
+          <svg height="100" width="100">
+            <circle cx="50" cy="50" r="30" stroke="" stroke-width="3" fill="white" />
+            <text x="50%" y="50%" text-anchor="middle" stroke="#51c5cf" stroke-width="3px" dy=".35em" font-size="40">
+              2
+            </text>
+          </svg>
+        </div>
+        <h2>VERIFY YOUR VOTE</h2>
+        <hr />
+        <h6 class="text-center">
+          In order to see and verify the details of your vote including the selected candidate, simply paste your password in the box below and hit the Verify Button!
+        </h6>
+
+        <!-- This is the flash messages which is triggered when some user is trying to cast a ballot twice -->
+        {% with messages = get_flashed_messages(category_filter=["no_private_key_fail"]) %} {% if messages %} {%- for
+          message in messages %}
+          <div class="alert alert-danger alert-dismissible fade show mt-2" role="alert">
+            <span>{{ message }}</span>
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          {% endfor -%} {% endif %} {% endwith %}
+          <!-- This is the flash messages which is triggered when some user is trying to cast a ballot twice -->
+          {% with messages = get_flashed_messages(category_filter=["wrong_private_key_fail"]) %} {% if messages %} {%- for
+          message in messages %}
+          <div class="alert alert-danger alert-dismissible fade show mt-2" role="alert">
+            <span>{{ message }}</span>
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          {% endfor -%} {% endif %} {% endwith %}
+
+
+        <form action="{{ url_for('verify') }}" method="POST" id="verify_form">
+          <div class="inline-block mt-3">
+            <label class="mr-3" for="private_key">Password: </label
+            ><input type="text" name="private_key" id="private_key" required />
+          </div>
+          <div class="verify-vote-button text-center mt-2">
+            <input class="btn btn-lg" type="submit" value="Verify Vote" />
+          </div>
+        </form>
+
+        {% if casted_vote != null %}
+        <div class="row mt-5 justify-content-center inline-block" id="check">
+          <div class="col-lg-8 col-md-10 col-12 block">
+            <div class="card text-left">
+              <div class="card-body">
+                <h5 class="card-title">
+                  <strong>Your Vote</strong>
+                </h5>
+                <ul class="list-group list-group-flush">
+                  <li class="list-group-item">
+                    <span class="block-info">Candidates</span>
+                    <br />
+                    <div class="text-truncate">
+                      <div class="candidates">
+                        <small>{{ casted_vote['candidate']| safe }}</small><br />
+                      </div>
+                    </div>
+                  </li>
+
+                  <li class="list-group-item">
+                    <span class="block-info">Timestamp</span>
+                    <br />
+                    <div class="text-truncate">
+                      <small>{{ casted_vote['timestamp'] }}</small>
+                    </div>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="survey text-center mt-5 pt-5 pb-5">
+      <div class="flag mb-5" id="flag"></div>
+      <div class="container">
+        <div class="number">
+          <svg height="100" width="100">
+            <circle cx="50" cy="50" r="30" stroke="" stroke-width="3" fill="white" />
+            <text x="50%" y="50%" text-anchor="middle" stroke="#51c5cf" stroke-width="3px" dy=".35em" font-size="40">
+              3
+            </text>
+          </svg>
+        </div>
+        <h2>HELP US AND WIN A FREE DINNER</h2>
+        <hr />
+        <h6 class="text-center">
+            Please support our Research by filling out the following survey. It takes less than three minutes and gives you the chance to win a free Dinner for you and three friends at Azure Restaurant on Campus! The winner will be contacted tomorrow. Thank you!
+        </h6>
+        <div class="mt-3">
+          <a href="https://novasbe.az1.qualtrics.com/jfe/form/SV_cYoLm5iLXkqiG1v">
+            <button type="button" class="btn btn-lg" data-toggle="" data-target="">
+              Survey
+            </button>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- THIS IS VERSION B -->
+    {% else %}
+
+    <div class="blockchain text-center">
+      <div class="help text-right" style="margin-right:8px">
+        <a href="/static/help_b.pdf" class="btn btn-primary"><i class="fas fa-question-circle"></i><span class="d-none d-sm-inline-block ml-2" style="font-size: 16px">Help</span></a>
+      </div>
+      <div class="container">
+        <div class="number">
+          <svg height="100" width="100">
+            <circle cx="50" cy="50" r="30" stroke="" stroke-width="3" fill="white" />
+            <text x="50%" y="50%" text-anchor="middle" stroke="#51c5cf" stroke-width="3px" dy=".35em" font-size="40">
+              1
+            </text>
+          </svg>
+        </div>
+        <h2>THE VOTING BLOCKCHAIN</h2>
+        <hr />
+        <h6 class="mb-5">
+          The illustration below shows this system’s blockchain, which contains all casted votes in an encrypted and anonymous manner. One block means one vote. To encrypt the vote, each block includes a hash and the previous block’s hash, which are security numbers randomly calculated from the vote’s data. Storing the new and previous hash in each vote creates a connection between all of them which protects the whole Blockchain from unnoticed tampering. Moreover, you can see the encrypted voter address. Feel free to search for your own vote in the Blockchain, identifiable by matching your From Address, which you will find in step 3.
+        </h6>
+        <div class="row justify-content-end d-block d-sm-none mb-4">
+          <div class="col-12 blockchain-info">
+            <div class="alert alert-dismissible fade show" role="alert">
+              <div class="card">
+                <div class="card-body">
+                  <h6 class="card-title">
+                    <i class="fas fa-info-circle mr-2"></i>
+                    Note For Mobile Devices
+                  </h6>
+                  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+                  <ul class="list-group list-group-flush">
+                    <li class="list-group-item">
+                      <div class="text-truncate">
+                        <small>Just scroll left and right in order to see the whole blockchain containing all casted votes so far.</small>
+                      </div>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="blockchain-inner">
+          <div class="row text-left">
+            <div class="col-12">
+              <div class="scrolling-wrapper-flexbox">
+                {% for block in blockchain %}
+                <div class="card">
+                  <div class="card-body">
+                    <h5 class="card-title">
+                      <strong> Vote {{ block['block_number'] }}</strong> {% if block['block_number'] == 1 %}
+                      <small class="">(Genesis block)</small>
+                      {% endif %}
+                    </h5>
+                  </div>
+                  <ul class="list-group list-group-flush">
+                    <li class="list-group-item">
+                      <span class="block-info">Hash</span>
+                      <br />
+                      <div class="text-truncate" style="color:{{ block['color'] }}">
+                        <small>{{ block['hash'] }}</small>
+                      </div>
+
+                      <br />
+                      <span class="block-info">Hash of Previous Block</span>
+                      <br />
+
+                      {% if block['block_number'] == 1 %}
+                      <div class="text-truncate" style="color:white">
+                        <small>{{ block['previous_hash'] }}</small>
+                      </div>
+                      {% else %}
+                      <div class="text-truncate" style="color:{{ block['previous_color'] }}">
+                        <small>{{ block['previous_hash'] }}</small>
+                      </div>
+                      {% endif %}
+                    </li>
+
+                    <li class="list-group-item">
+                      <span class="block-info">From Address</span><br />
+                      <div class="text-truncate">
+                        <small>{{ block['from_address'] }}</small>
+                      </div>
+                    </li>
+
+                    {% if election_ended %}
+                    <li class="list-group-item">
+                      <span class="block-info">To Address</span><br />
+                      <div class="text-truncate">
+                        <small>{{ block['to_address'] }}</small>
+                      </div>
+                    </li>
+                    {% endif %}
+
+                    <li class="list-group-item">
+                      <span class="block-info">Timestamp</span><br />
+                      <div class="text-truncate">
+                        <small>{{ block['timestamp'] }}</small>
+                      </div>
+                    </li>
+                  </ul>
+                </div>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="flag pt-5 mt-5" id="flag"></div>
+    </div>
+
+    <div class="verify-vote text-center mt-5" id="vote-section">
+      <div class="container">
+        <div class="number">
+          <svg height="100" width="100">
+            <circle cx="50" cy="50" r="30" stroke="" stroke-width="3" fill="white" />
+            <text x="50%" y="50%" text-anchor="middle" stroke="#51c5cf" stroke-width="3px" dy=".35em" font-size="40">
+              2
+            </text>
+          </svg>
+        </div>
+        <h2>VERIFY YOUR VOTE</h2>
+        <hr />
+        <h6 class="text-center">
+            In order to see and verify the details of your vote including the selected candidate, simply paste your Voter Key in the box below and hit the Verify Button!
+        </h6>
+
+        <!-- This is the flash messages which is triggered when some user is trying to cast a ballot twice -->
+        {% with messages = get_flashed_messages(category_filter=["no_private_key_fail"]) %} {% if messages %} {%- for
+          message in messages %}
+          <div class="alert alert-danger alert-dismissible fade show mt-2" role="alert">
+            <span>{{ message }}</span>
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          {% endfor -%} {% endif %} {% endwith %}
+          <!-- This is the flash messages which is triggered when some user is trying to cast a ballot twice -->
+          {% with messages = get_flashed_messages(category_filter=["wrong_private_key_fail"]) %} {% if messages %} {%- for
+          message in messages %}
+          <div class="alert alert-danger alert-dismissible fade show mt-2" role="alert">
+            <span>{{ message }}</span>
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          {% endfor -%} {% endif %} {% endwith %}
+
+        <form action="{{ url_for('verify') }}" method="POST" id="verify_form">
+          <div class="inline-block mt-3">
+            <label class="mr-3" for="private_key">Voter Key: </label
+            ><input type="text" name="private_key" id="private_key" required />
+          </div>
+          <div class="verify-vote-button text-center mt-3">
+            <input class="btn btn-lg" type="submit" value="Verify Vote" />
+          </div>
+        </form>
+
+        {% if casted_vote != null %}
+        <div class="row mt-5 justify-content-center vote-block" id="check">
+          <div class="col-lg-8 col-md-10 col-12 block">
+            <div class="card text-left">
+              <div class="card-body">
+                <h5 class="card-title">
+                  <strong
+                    >Your Vote {% set color = {'color':'random'} %} {% set previous_color = {'color': 'random'} %} {%
+                    for block in blockchain %} {% if casted_vote['from_address'] == block['from_address'] %} (#{{
+                      block['block_number']
+                    }}) {% if color.update({'color': block['color']}) %} {% endif %} {% if
+                    previous_color.update({'color': block['previous_color']}) %} {% endif %} {% endif %} {% endfor %}
+                  </strong>
+                </h5>
+                <ul class="list-group list-group-flush">
+                  <li class="list-group-item">
+                    <span class="block-info">Hash</span>
+                    <br />
+                    <div class="text-truncate">
+                      <small style="color:{{ color['color'] }}">{{ casted_vote['hash'] }}</small>
+                    </div>
+                    <br />
+                    <span class="block-info">Hash of Previous Block</span>
+                    <br />
+                    <div class="text-truncate">
+                      <small style="color:{{ previous_color['color'] }}">{{ casted_vote['previous_hash'] }}</small>
+                    </div>
+                  </li>
+
+                  <li class="list-group-item">
+                    <span class="block-info">From Address <small>(That's Yours!)</small></span>
+                    <br />
+                    <div class="text-truncate">
+                      <small>{{ casted_vote['from_address'] }}</small
+                      >
+                    </div>
+                  </li>
+
+                  <li class="list-group-item">
+                    <span class="block-info">To Address <small>(Your Candidates!)</small></span>
+                    <br />
+                    <div class="text-truncate">
+                      <small>{{ casted_vote['to_address'] }}</small><br />
+                    </div>
+                    <br>
+                    <span class="block-info">Candidates</span>
+                    <br />
+                    <div class="text-truncate">
+                      <div class="candidates">
+                        <small>{{ casted_vote['candidate']| safe }}</small><br />
+                      </div>
+                    </div>
+                  </li>
+
+                  <li class="list-group-item">
+                    <span class="block-info">Timestamp</span>
+                    <br />
+                    <div class="text-truncate">
+                      <small>{{ casted_vote['timestamp'] }}</small>
+                    </div>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="survey text-center mt-5 pt-5 pb-5">
+      <div class="flag mb-5" id="flag"></div>
+      <div class="container">
+        <div class="number">
+          <svg height="100" width="100">
+            <circle cx="50" cy="50" r="30" stroke="" stroke-width="3" fill="white" />
+            <text x="50%" y="50%" text-anchor="middle" stroke="#51c5cf" stroke-width="3px" dy=".35em" font-size="40">
+              3
+            </text>
+          </svg>
+        </div>
+        <h2>HELP US AND WIN A FREE DINNER</h2>
+        <hr />
+        <h6 class="text-center">
+            Please support our Research by filling out the following survey. It takes less than three minutes and gives you the chance to win a free Dinner for you and three friends at Azure Restaurant on Campus! The winner will be contacted tomorrow. Thank you!
+        </h6>
+        <div class="mt-3">
+          <a href="https://novasbe.az1.qualtrics.com/jfe/form/SV_6ygxfnnECviFUTH">
+            <button type="button" class="btn btn-lg" data-toggle="" data-target="">
+              Survey
+            </button>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    {% endif %}
+    <!-- HERE THE DIFFERENT VERSION END AGAIN -->
+
+    <!-- BOOTSTRAP SCRIPTS -->
+    <!-- More necessary scripts in order to use bootstrap on the website -->
+    <script
+      src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+      integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
+      integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
+      integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+      crossorigin="anonymous"
+    ></script>
+    <!-- We are linking the main JavaScript file here if we want to include some javascript functions -->
+    <script type="text/javascript" src="{{ url_for('static', filename='main.js') }}"></script>
+  </body>
+</html>
