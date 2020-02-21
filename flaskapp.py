@@ -54,8 +54,8 @@ if ENV == 'dev':
 else:
     app.debug = False
     app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
-    GOOGLE_REDIRECT_ADDRESS = "https://votechain-sbe.herokuapp.com/login/callback"
-    VERIFICATION_REQUEST_URL = "https://votechain-sbe.herokuapp.com/voting/"    
+    GOOGLE_REDIRECT_ADDRESS = "https://novasbevoting.herokuapp.com/login/callback"
+    VERIFICATION_REQUEST_URL = "https://novasbevoting.herokuapp.com/voting/"    
     SESSION_REDIS = redis.from_url(os.environ.get("REDIS_URL"))
     
     
