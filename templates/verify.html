@@ -37,144 +37,8 @@
   </head>
 
   <body>
-    <!-- Here is where the seperation between Version A and Version B begins -->
-
-    <!-- THIS IS VERSION A -->
-    {% if version == 'A' %}
-
-    <div class="two-factor text-center">
-      <div class="help text-right" style="margin-right:8px">
-        <a href="/static/help_a.pdf" class="btn btn-primary"><i class="fas fa-question-circle"></i><span class="d-none d-sm-inline-block ml-2" style="font-size: 16px">Help</span></a>
-      </div>
-      <div class="container">
-        <div class="number">
-          <svg height="100" width="100">
-            <circle cx="50" cy="50" r="30" stroke="" stroke-width="3" fill="white" />
-            <text x="50%" y="50%" text-anchor="middle" stroke="#51c5cf" stroke-width="3px" dy=".35em" font-size="40">
-              1
-            </text>
-          </svg>
-        </div>
-        <h2>TWO FACTOR AUTHENTICATION</h2>
-        <hr />
-        <h6>
-            Two-factor authentication adds an additional layer of security to the authentication process by making it harder for attackers to gain access to a person's online accounts. We implemented it by generating an individual password for you after you casted your vote. To provide the highest possible privacy for your vote, your password has not been stored in our database and is not accessible anymore unless you have saved it on one of your personal devices. In that case, you are able to verify your vote by passing it in below.
-        </h6>
-      </div>
-      <div class="flag pt-5 mt-5" id="flag"></div>
-    </div>
-
-    <div class="verify-vote text-center mt-5">
-      <div class="container">
-        <div class="number">
-          <svg height="100" width="100">
-            <circle cx="50" cy="50" r="30" stroke="" stroke-width="3" fill="white" />
-            <text x="50%" y="50%" text-anchor="middle" stroke="#51c5cf" stroke-width="3px" dy=".35em" font-size="40">
-              2
-            </text>
-          </svg>
-        </div>
-        <h2>VERIFY YOUR VOTE</h2>
-        <hr />
-        <h6 class="text-center">
-          In order to see and verify the details of your vote including the selected candidate, simply paste your password in the box below and hit the Verify Button!
-        </h6>
-
-        <!-- This is the flash messages which is triggered when some user is trying to cast a ballot twice -->
-        {% with messages = get_flashed_messages(category_filter=["no_private_key_fail"]) %} {% if messages %} {%- for
-          message in messages %}
-          <div class="alert alert-danger alert-dismissible fade show mt-2" role="alert">
-            <span>{{ message }}</span>
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-              <span aria-hidden="true">&times;</span>
-            </button>
-          </div>
-          {% endfor -%} {% endif %} {% endwith %}
-          <!-- This is the flash messages which is triggered when some user is trying to cast a ballot twice -->
-          {% with messages = get_flashed_messages(category_filter=["wrong_private_key_fail"]) %} {% if messages %} {%- for
-          message in messages %}
-          <div class="alert alert-danger alert-dismissible fade show mt-2" role="alert">
-            <span>{{ message }}</span>
-            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-              <span aria-hidden="true">&times;</span>
-            </button>
-          </div>
-          {% endfor -%} {% endif %} {% endwith %}
-
-
-        <form action="{{ url_for('verify') }}" method="POST" id="verify_form">
-          <div class="inline-block mt-3">
-            <label class="mr-3" for="private_key">Password: </label
-            ><input type="text" name="private_key" id="private_key" required />
-          </div>
-          <div class="verify-vote-button text-center mt-2">
-            <input class="btn btn-lg" type="submit" value="Verify Vote" />
-          </div>
-        </form>
-
-        {% if casted_vote != null %}
-        <div class="row mt-5 justify-content-center inline-block" id="check">
-          <div class="col-lg-8 col-md-10 col-12 block">
-            <div class="card text-left">
-              <div class="card-body">
-                <h5 class="card-title">
-                  <strong>Your Vote</strong>
-                </h5>
-                <ul class="list-group list-group-flush">
-                  <li class="list-group-item">
-                    <span class="block-info">Candidates</span>
-                    <br />
-                    <div class="text-truncate">
-                      <div class="candidates">
-                        <small>{{ casted_vote['candidate']| safe }}</small><br />
-                      </div>
-                    </div>
-                  </li>
-
-                  <li class="list-group-item">
-                    <span class="block-info">Timestamp</span>
-                    <br />
-                    <div class="text-truncate">
-                      <small>{{ casted_vote['timestamp'] }}</small>
-                    </div>
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </div>
-        {% endif %}
-      </div>
-    </div>
-
-    <div class="survey text-center mt-5 pt-5 pb-5">
-      <div class="flag mb-5" id="flag"></div>
-      <div class="container">
-        <div class="number">
-          <svg height="100" width="100">
-            <circle cx="50" cy="50" r="30" stroke="" stroke-width="3" fill="white" />
-            <text x="50%" y="50%" text-anchor="middle" stroke="#51c5cf" stroke-width="3px" dy=".35em" font-size="40">
-              3
-            </text>
-          </svg>
-        </div>
-        <h2>HELP US AND WIN A FREE DINNER</h2>
-        <hr />
-        <h6 class="text-center">
-            Please support our Research by filling out the following survey. It takes less than three minutes and gives you the chance to win a free Dinner for you and three friends at Azure Restaurant on Campus! The winner will be contacted tomorrow. Thank you!
-        </h6>
-        <div class="mt-3">
-          <a href="https://novasbe.az1.qualtrics.com/jfe/form/SV_cYoLm5iLXkqiG1v">
-            <button type="button" class="btn btn-lg" data-toggle="" data-target="">
-              Survey
-            </button>
-          </a>
-        </div>
-      </div>
-    </div>
-
-    <!-- THIS IS VERSION B -->
-    {% else %}
+   
+    <!-- THIS IS THE MAIN CONTENT FOR THE VOTE VERIFICATION -->
 
     <div class="blockchain text-center">
       <div class="help text-right" style="margin-right:8px">
@@ -287,7 +151,7 @@
       <div class="flag pt-5 mt-5" id="flag"></div>
     </div>
 
-    <div class="verify-vote text-center mt-5" id="vote-section">
+    <div class="verify-vote text-center mt-5 mb-5" id="vote-section">
       <div class="container">
         <div class="number">
           <svg height="100" width="100">
@@ -403,36 +267,7 @@
         {% endif %}
       </div>
     </div>
-
-    <div class="survey text-center mt-5 pt-5 pb-5">
-      <div class="flag mb-5" id="flag"></div>
-      <div class="container">
-        <div class="number">
-          <svg height="100" width="100">
-            <circle cx="50" cy="50" r="30" stroke="" stroke-width="3" fill="white" />
-            <text x="50%" y="50%" text-anchor="middle" stroke="#51c5cf" stroke-width="3px" dy=".35em" font-size="40">
-              3
-            </text>
-          </svg>
-        </div>
-        <h2>HELP US AND WIN A FREE DINNER</h2>
-        <hr />
-        <h6 class="text-center">
-            Please support our Research by filling out the following survey. It takes less than three minutes and gives you the chance to win a free Dinner for you and three friends at Azure Restaurant on Campus! The winner will be contacted tomorrow. Thank you!
-        </h6>
-        <div class="mt-3">
-          <a href="https://novasbe.az1.qualtrics.com/jfe/form/SV_6ygxfnnECviFUTH">
-            <button type="button" class="btn btn-lg" data-toggle="" data-target="">
-              Survey
-            </button>
-          </a>
-        </div>
-      </div>
-    </div>
-
-    {% endif %}
-    <!-- HERE THE DIFFERENT VERSION END AGAIN -->
-
+    
     <!-- BOOTSTRAP SCRIPTS -->
     <!-- More necessary scripts in order to use bootstrap on the website -->
     <script

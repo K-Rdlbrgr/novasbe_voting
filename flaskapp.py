@@ -49,6 +49,8 @@ if ENV == 'dev':
     GOOGLE_REDIRECT_ADDRESS = "https://127.0.0.1:5000/login/callback"
     VERIFICATION_REQUEST_URL = "https://127.0.0.1:5000/voting/"
     
+
+# NEEDS ADJUSTMENT
 else:
     app.debug = False
     app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
@@ -147,33 +149,19 @@ class Votes(db.Model):
         self.value = 1
         self.signature = signature
         
-# The Vote_Check table is set up ahead of the elections and stores the correct version the user got directed to as well as the Boolean if the user already voted or not
+# The Vote_Check table is set up ahead of the elections and stores the Boolean if the user already voted or not
 class vote_check(db.Model):
     __tablename__ = 'vote_check'
     vote_check_id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.user_id'))
     election_id = db.Column(db.Integer, db.ForeignKey('elections.election_id'))
     already_voted = db.Column(db.Boolean)
-    version = db.Column(db.String(1))
     
-    def __init__(self, vote_check_id, user_id, election_id, already_voted, version):
+    def __init__(self, vote_check_id, user_id, election_id, already_voted):
         self.vote_check_id = vote_check_id
         self.user_id = user_id
         self.election_id = election_id
         self.already_voted = False
-        self.version = version
-
-# The Version_Control table has one row for each election and the corresponding last version of the app which was directed to a user. It is therefore crucial for making sure we get a balanced sample in the end
-class version_control(db.Model):
-    __tablename__ = 'version_control'
-    version_control_id = db.Column(db.Integer, primary_key=True)
-    latest_version = db.Column(db.String(1))
-    election_id = db.Column(db.Integer, db.ForeignKey('elections.election_id'))
-    
-    def __init__(self, vesion_control_id, latest_version, election_id):
-        self.version_control_id = version_control_id
-        self.latest_version = latest_version
-        self.election_id = election_id
         
 # Establish a User class with the Flask module UserMixin which is used to support the Google SignIn
 
@@ -510,7 +498,7 @@ def process():
             print('Transaction must include from and to address')
             flag = True
         
-        # Creating a transaction to ensure jsut one block gets added at a time, to eliminate the chance of breaking the Blockchain
+        # Creating a transaction to ensure just one block gets added at a time, to eliminate the chance of breaking the Blockchain
         connection = engine.connect()
         trans = connection.begin()    
         
@@ -581,50 +569,12 @@ def process():
                     
             engine.execute(update_already_voted_query)
             print('The already_voted status got updated')
-            
-            # Here the Version Control for the A/B Testing starts
-            # Check which version was the last version
-            latest_version_query = f"""SELECT latest_version
-                                    FROM version_control as v
-                                    INNER JOIN users as u
-                                    ON v.election_id = u.election_id
-                                    WHERE user_id = {voter_id}"""
-                    
-            latest_version_results = engine.execute(latest_version_query)
-            latest_version_result = latest_version_results.first()
-            latest_version = latest_version_result[0]
-            
-            # Select the version the voter gets displayed based on the last version
-            if latest_version == 'A':
-                voter_version = 'B'
-                session['voter_version']=voter_version
-            else:
-                voter_version = 'A'
-                session['voter_version']=voter_version
-            
-            # Update the database with the latest_version
-            update_latest_version_query = f"""UPDATE version_control
-                                            SET latest_version = '{voter_version}'
-                                            FROM version_control AS v
-                                            INNER JOIN users AS u
-                                            ON v.election_id = u.election_id
-                                            WHERE user_id = {voter_id}"""
-                
-            engine.execute(update_latest_version_query)
-            print('The latest_version status got updated')
-            
-            # Update the used version for the voter in the database
-            update_version_query = f"""UPDATE vote_check
-                                    SET version = '{voter_version}'
-                                    WHERE user_id = {voter_id}"""
-                    
-            engine.execute(update_version_query)
                 
             return redirect(url_for('verification'))
         
         # If an Error occured somewhere along the isValid process the user will get a corresponding Error message
         else:
-            message = 'Something went wrong while you were trying to cast your vote. To further investigate and solve this issue, please send an email to our support: 34638@novasbe.pt'
+            message = 'Something went wrong while you were trying to cast your vote. To further investigate and solve this issue, please send an email to our support: novasbevoting@gmail.com'
             return render_template('process.html', message = message)
         
         
@@ -640,9 +590,6 @@ def verification():
     
     # Reset the Session Timer to grnt the User a maximum of 5 minutes before he has to login again for security reasons
     session.permanent = True
-    
-    # Get the version information from the session
-    version = session['voter_version']
     
     # Get the user credentials from the process.html
     user_address = session['user_address']
@@ -690,7 +637,7 @@ def verification():
     # Close the ResultProxy to not risk open and unused DB connections
     blockchain_results.close()
     
-    return render_template('verification.html',user_address=user_address, user_publicKey=user_publicKey, user_privateKey=user_privateKey, version=version, blockchain=blockchain)
+    return render_template('verification.html',user_address=user_address, user_publicKey=user_publicKey, user_privateKey=user_privateKey, blockchain=blockchain)
     
 @app.route('/verify/', methods=["GET", "POST"])
 @login_required
@@ -698,28 +645,6 @@ def verify():
     # Making sure the User logged in with his Nova Account before entering this route
     if request.referrer == None:
         return redirect(url_for("login"))
-    
-    # Error Handling in Chrome if there is no existing session
-    try:
-        version = session['voter_version']
-        
-    except KeyError:
-        voter_id = current_user.id
-        
-        # Query the corresponding version(A/B) to render for each user
-        version_control_query = f"""SELECT version
-                                    FROM vote_check
-                                    WHERE user_id = {voter_id}"""
-                
-        version_control_results = engine.execute(version_control_query)
-        version_control_result = version_control_results.first()
-        version = version_control_result[0]
-        
-        # Initialize the Session Version
-        session['voter_version'] = version
-        
-        print(f'We are n the Verify Page and the version is {version}')
-        print(f'We are n the Verify Page and the voter_id is {voter_id}')
         
     # Query the end_time of the election the user participated in to decide if the blockchain also displays the to addresses or not
     
@@ -796,7 +721,7 @@ def verify():
             # Pass along a flash message to the HTML if this error occurs
             print('This is not a private key')
             flash('This is not a private key', 'no_private_key_fail')
-            return render_template('verify.html', version=version, blockchain=blockchain)
+            return render_template('verify.html', blockchain=blockchain)
         
         # QUERY to find the correct transaction based on the address (address is unique, so there will be a maximum of one row)
         verify_vote_query = f"""SELECT * FROM votes
@@ -810,7 +735,7 @@ def verify():
             # Pass along a flash message to the HTML if this error occurs
             print('There is no corresponding vote to this private key')
             flash('There is no corresponding vote to this private key', 'wrong_private_key_fail')
-            return render_template('verify.html', version=version, blockchain=blockchain)
+            return render_template('verify.html', blockchain=blockchain)
         
         # Query for candidate name
         candidate_query = f"""SELECT name FROM candidates
@@ -832,7 +757,7 @@ def verify():
                        'value': verify_vote_result[6],
                        'signature': verify_vote_result[7],}
             
-        return render_template('verify.html', casted_vote=casted_vote, version=version, blockchain=blockchain, election_ended=election_ended)
+        return render_template('verify.html', casted_vote=casted_vote, blockchain=blockchain, election_ended=election_ended)
     
     else:
         # Create empty list for Blockchain which will result in a list of dictionaries
@@ -876,7 +801,7 @@ def verify():
         # Close the ResultProxy to not risk open and unused DB connections
         blockchain_results.close()
         
-        return render_template('verify.html', version=version, blockchain=blockchain, election_ended=election_ended)
+        return render_template('verify.html', blockchain=blockchain, election_ended=election_ended)
 
 # Before running the app we check in which mdoe (development/production) we are
 if ENV == 'dev':
