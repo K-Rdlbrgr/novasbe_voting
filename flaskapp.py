@@ -49,8 +49,6 @@ if ENV == 'dev':
     GOOGLE_REDIRECT_ADDRESS = "https://127.0.0.1:5000/login/callback"
     VERIFICATION_REQUEST_URL = "https://127.0.0.1:5000/voting/"
     
-
-# NEEDS ADJUSTMENT
 else:
     app.debug = False
     app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
